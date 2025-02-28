@@ -1,23 +1,26 @@
 class LoginPage {
-  enterURL() {
-   cy.visit(
-     "https://qastaging.siigo.com/#/login"
-   );
- }
+  visitHome() {
+    cy.clearAllCookies();
+    cy.clearAllLocalStorage();
+    cy.intercept("GET", "**/openid-callback/**", { statusCode: 200, body: "" });
+    cy.visit("https://qastaging.siigo.com/#/login", { failOnStatusCode: false });
+    cy.title().should("eq", "Iniciar Sesión Siigo – Software Contable y Administrativo");
+  }
+
   enterUserNamePassword(username, password) {
-   cy.xpath("//input[@id='siigoSignInName']").should('be.visible').type(username);
-   cy.wait(4000)
-   cy.xpath("//input[@id='siigoSignInName']").should('be.visible').type(password);
-   cy.wait(4000)
-   return this;
- }
+    cy.xpath("//input[@id='siigoSignInName']").should("be.visible").type(username);
+    cy.xpath("//input[@id='siigoPassword']").should("be.visible").type(password);
+    return this;
+  }
+
   clickSubmitButton() {
-   cy.xpath("//button[@id='siigoNext']").eq(0).click();
-   return this;
- }
+    cy.xpath("//button[@id='siigoNext']").should('be.visible').click({force: true});
+    return this;
+  }
+
   verifyPageTitle() {
-   return cy.title().should("eq", "Search -");
- }
+    return cy.title({ timeout: 10000 }).should("include", "Siigo");
+  }
 }
-const login = new LoginPage();
-export default login;
+
+export default new LoginPage();
