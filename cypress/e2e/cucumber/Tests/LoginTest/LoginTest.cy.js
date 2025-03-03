@@ -2,12 +2,6 @@
 import {Given, When, Then, And} from "cypress-cucumber-preprocessor/steps"
 import login from "../../../../support/PageObjects/LoginPage";
 
-describe('Test pagina Siigo', () =>{
-    Cypress.on('uncaught:exception', (err, runnable) => {
-        return false
-    })
-})
-
 Given("Open the site in the browser", () => {
 login.visitHome()
 });

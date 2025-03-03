@@ -1,5 +1,10 @@
 import 'cypress-iframe'; // Asegurar que cypress-iframe está importado
 
+describe('Test pagina Siigo', () =>{
+    Cypress.on('uncaught:exception', (err, runnable) => {
+        return false
+    })
+})
 class LoginPage {
   
   // 🔹 Método para limpiar sesión
@@ -28,7 +33,7 @@ class LoginPage {
     });
   }
 
-  // 🔹 Método para visitar la página de autenticación si es necesario
+  // 🔹 Método para visitar la página de autenticación 
   visitHome() {
     cy.getCookie("auth_token").then((cookie) => {
       if (!cookie) {
@@ -66,12 +71,10 @@ class LoginPage {
     cy.visit("https://qastaging.siigo.com/#/dashboard/1055");
     cy.url().should("include", "/dashboard/1055");
 
-    // 🔹 Mejor manejo del iframe
     cy.get("iframe", { timeout: 15000 }).should("exist").then(($iframe) => {
       cy.wrap($iframe).should("be.visible");
     });
 
-    // 🔹 Uso mejorado de cypress-iframe
     cy.frameLoaded("iframe", { timeout: 15000 });
     cy.iframe().find("selector-dentro-del-iframe").should("be.visible");
 
