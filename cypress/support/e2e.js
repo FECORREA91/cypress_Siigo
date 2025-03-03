@@ -16,3 +16,8 @@
 // Import commands.js using ES2015 syntax:
 import './commands'
 import 'cypress-xpath';
+Cypress.on("fail", (error, runnable) => {
+    cy.screenshot(); // Toma una captura cuando falla una prueba
+    throw error;
+  });
+  

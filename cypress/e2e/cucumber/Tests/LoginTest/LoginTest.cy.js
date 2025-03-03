@@ -23,3 +23,18 @@ And("user select button Continuar the site allow enter", () =>{
 Then("validate the title in the page", () => {
 login.verifyPageTitle();
 });
+
+Given("The user is on the dashboard", () => {
+    login.visitDashboard()
+});
+
+When("The user clicks the Crear button", () =>{
+    login.selectCrearButton()
+});
+
+Then("The form Crear un tercero should be displayed ", () => {
+    login.verifyDashborad();
+});
+
+
+    
