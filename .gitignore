@@ -1,0 +1,18 @@
+# Ignorar archivos específicos
+.env
+config/secrets.yml
+
+# Ignorar carpetas
+node_modules/
+dist/
+build/
+logs/
+
+# Ignorar archivos temporales
+*.log
+*.tmp
+.DS_Store
+
+# Ignorar videos y capturas de Cypress
+cypress/videos/
+cypress/screenshots/
