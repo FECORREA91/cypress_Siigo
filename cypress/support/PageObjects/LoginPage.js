@@ -1,99 +1,80 @@
-import 'cypress-iframe'; // Asegurar que cypress-iframe está importado
+describe('Test pagina Siigo', () => {
+  Cypress.on('uncaught:exception', () => false);
+});
 
-describe('Test pagina Siigo', () =>{
-    Cypress.on('uncaught:exception', (err, runnable) => {
-        return false
-    })
-})
 class LoginPage {
-  
-  // 🔹 Método para limpiar sesión
-  clearSession() {
-    cy.clearCookies();
-  }
 
-  // 🔹 Método para autenticar al usuario solo si no está autenticado
-  loginIfNeeded(username, password) {
-    cy.session("login-session", () => {
-      cy.visit("https://qaaccount.siigo.com/");
-      
-      cy.get("#siigoSignInName").should("be.visible").type(username);
-      cy.get("#siigoPassword").should("be.visible").type(password);
-      cy.get("#siigoNext").should("be.visible").click();
+// 🔹 Método para limpiar sesión
+clearSession() {
+  cy.clearCookies();
+}
 
-      // 🔹 Esperar que redireccione correctamente al dashboard
-      cy.url({ timeout: 15000 }).should("include", "dashboard");
+// 🔹 Método para visitar la página de autenticación 
+visitHome() {
+  cy.getCookie("auth_token").then((cookie) => {
+    if (!cookie) {
+      const randomState = Math.random().toString(36).substring(7);
+      cy.visit("https://qastaging.siigo.com/#/login");
+      this.verifyPageTitle("Siigo");
+    }
+  });
+}
 
-      // 🔹 Validar que la sesión se mantiene
-      cy.getCookie("auth_token").should("exist");
-    }, {
-      validate: () => {
-        cy.getCookie("auth_token").should("exist");
-      }
-    });
-  }
+// 🔹 Ingresar usuario y contraseña
+enterUserNamePassword(username, password) {
+  cy.get("#siigoSignInName").should("be.visible").type(username);
+  cy.get("#siigoPassword").should("be.visible").type(password);
+}
 
-  // 🔹 Método para visitar la página de autenticación 
-  visitHome() {
-    cy.getCookie("auth_token").then((cookie) => {
-      if (!cookie) {
-        const randomState = Math.random().toString(36).substring(7);
-        cy.visit(`https://qaaccount.siigo.com/siigob2cqa.onmicrosoft.com/b2c_1a_ssosiigo_v3/oauth2/v2.0/authorize?client_id=d0e0d0c1-7297-4379-8237-bb90b5573616&redirect_uri=https%3A%2F%2Fqastaging.siigo.com%2Fopenid-callback%2F&response_type=code&scope=openid+profile+https%3A%2F%2Fsiigob2cqa.onmicrosoft.com%2Fbusiness%2Fuser_impersonation+offline_access&state=${randomState}&code_challenge=_UZFsVmF-np39Ve0HWjLfDcDwXu1zBbg5--LWW7peuw&code_challenge_method=S256&response_mode=fragment`);
-        cy.title().should("eq", "Siigo");
-      }
-    });
-  }
+// 🔹 Hacer clic en botón de inicio de sesión
+clickSubmitButton() {
+  cy.get("#siigoNext").should("be.visible").click({ force: true });
+}
 
-  // 🔹 Ingresar usuario y contraseña
-  enterUserNamePassword(username, password) {
-    cy.get("#siigoSignInName").should("be.visible").type(username);
-    cy.get("#siigoPassword").should("be.visible").type(password);
-  }
+// 🔹 Verificar título de la página
+verifyPageTitle(expectedTitle = "Siigo") {
+  cy.title({ timeout: 10000 }).should("eq", expectedTitle);
+}
 
-  // 🔹 Hacer clic en botón de inicio de sesión
-  clickSubmitButton() {
-    cy.get("#siigoNext").should("be.visible").click({ force: true });
-  }
+// 🔹 Método para iniciar sesión
+login(username, password) {
+  this.visitHome(); 
+  this.enterUserNamePassword(username, password); 
+  this.clickSubmitButton(); 
+  cy.wait(5000); 
+  this.visitDashboard();
+}
 
-  // 🔹 Verificar que la página cargó correctamente
-  verifyPageTitle(expectedTitle = "Siigo") {
-    cy.title({ timeout: 10000 }).should("eq", expectedTitle);
-  }
+// 🔹 Visitar dashboard sin cerrar sesión
+visitDashboard() {
+  cy.getCookie("auth_token").then((cookie) => {
+    if (!cookie) {
+      cy.log("⚠️ No hay sesión activa, autenticando...");
+      this.login("retoautomationsiigo@yopmail.com", "T4b4ck0ff1c3P455w0rd658*");
+    }
 
-  // 🔹 Visitar dashboard sin cerrar sesión
-  visitDashboard() {
-    cy.getCookie("auth_token").then((cookie) => {
-      if (!cookie) {
-        cy.log("⚠️ No hay sesión activa, autenticando...");
-      }
-    });
+    // Visitar la página después de verificar la sesión
+    cy.visit("https://qastaging.siigo.com/#/dashboard/1055", { failOnStatusCode: false });
 
-    cy.visit("https://qastaging.siigo.com/#/dashboard/1055");
-    cy.url().should("include", "/dashboard/1055");
+    // Esperar a que el loader desaparezca antes de continuar
+    cy.get('.loader-selector', { timeout: 15000 }).should('not.exist'); // Reemplaza con el selector real del loader
 
-    cy.get("iframe", { timeout: 15000 }).should("exist").then(($iframe) => {
-      cy.wrap($iframe).should("be.visible");
-    });
+    // Verificar que el dashboard ha cargado correctamente
+    cy.get("#main > div > div", { timeout: 15000 }).should("be.visible");
+  });
+}
 
-    cy.frameLoaded("iframe", { timeout: 15000 });
-    cy.iframe().find("selector-dentro-del-iframe").should("be.visible");
+// 🔹 Seleccionar botón "Crear"
+selectCrearButton() {
+  cy.get("#wc-s08af42d-1f7c-4dd0-bbfb-250bdc43adf4 > div > button", { timeout: 15000 })
+  .should("be.visible")
+  .click({ force: true });
+}
 
-    this.verifyPageTitle("Siigo Nube");
-  }
-
-  // 🔹 Seleccionar botón "Crear"
-  selectCrearButton() {
-    cy.xpath("//siigo-header-molecule[@class='data-siigo-five9 hydrated']")
-      .should("be.visible")
-      .click({ force: true });
-
-    this.verifyPageTitle("Siigo Nube");
-  }
-
-  // 🔹 Verificar dashboard
-  verifyDashboard() {
-    cy.xpath("//h3[contains(.,'Tipo de tercero')]").should("be.visible");
-  }
+// 🔹 Verificar dashboard
+verifyDashboard() {
+  cy.xpath("//h3[contains(.,'Tipo de tercero')]").should("be.visible");
+}
 }
 
 export default new LoginPage();

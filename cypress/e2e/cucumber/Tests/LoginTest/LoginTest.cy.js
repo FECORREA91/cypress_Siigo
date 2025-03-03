@@ -18,6 +18,7 @@ Then("validate the title in the page", () => {
 login.verifyPageTitle();
 });
 
+
 Given("The user is on the dashboard", () => {
     login.visitDashboard()
 });
